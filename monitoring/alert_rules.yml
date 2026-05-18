@@ -1,0 +1,65 @@
+groups:
+  - name: medbook_slo_alerts
+    interval: 30s
+    rules:
+
+      - alert: MedBookBackendDown_Critical
+        expr: probe_success{job="medbook_backend_probe"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "CRITICAL - MedBook backend is DOWN"
+          description: >
+            Backend unreachable for 2+ minutes.
+            Step 1: docker ps -a | grep medbook_backend
+            Step 2: docker logs medbook_backend --tail 50
+            Step 3: docker start medbook_backend
+
+      - alert: MedBookHighErrorRate_Warning
+        expr: |
+          (1 - avg(probe_success{job="medbook_backend_probe"})) * 100 > 1
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MedBook error rate above 1%"
+          description: "Backend error rate is {{ $value | humanize }}%. SLO target is below 1%."
+
+      - alert: MedBookHighLatency_Warning
+        expr: probe_duration_seconds{job="medbook_backend_probe"} > 0.5
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Response latency above 500ms"
+          description: "Latency for {{ $labels.instance }} is {{ $value | humanizeDuration }}."
+
+      - alert: MedBookCriticalLatency_Critical
+        expr: probe_duration_seconds{job="medbook_backend_probe"} > 2
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "CRITICAL - Latency exceeds 2 seconds"
+          description: "Latency is {{ $value | humanizeDuration }}. SLO breached."
+
+      - alert: HighCPUUsage_Warning
+        expr: |
+          100 - (avg by(instance)(rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value | humanize }}% for 5+ minutes."
+
+      - alert: HighMemoryUsage_Warning
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory - OOM risk"
+          description: "Memory usage is {{ $value | humanize }}%. Risk of OOM crash."

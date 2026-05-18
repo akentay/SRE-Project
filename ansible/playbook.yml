@@ -1,0 +1,81 @@
+---
+- name: MedBook SRE - Full Server Setup
+  hosts: medbook_servers
+  become: yes
+  vars:
+    project_dir: /opt/medbook
+
+  tasks:
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install required packages
+      apt:
+        name:
+          - docker.io
+          - docker-compose-plugin
+          - git
+          - curl
+          - python3-pip
+        state: present
+
+    - name: Start and enable Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Create project directory
+      file:
+        path: "{{ project_dir }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+
+    - name: Clone MedBook repository
+      git:
+        repo: "https://github.com/YOUR_USERNAME/MedBook-SRE.git"
+        dest: "{{ project_dir }}"
+        version: main
+        force: yes
+      become_user: ubuntu
+
+    - name: Copy environment file
+      template:
+        src: templates/.env.j2
+        dest: "{{ project_dir }}/MedBook-Mongo/.env"
+        owner: ubuntu
+        mode: '0600'
+
+    - name: Start all containers with docker compose
+      shell: docker compose up -d --build
+      args:
+        chdir: "{{ project_dir }}"
+      become_user: ubuntu
+
+    - name: Wait for backend to become healthy
+      uri:
+        url: "http://localhost:3000/"
+        status_code: 200
+      retries: 10
+      delay: 10
+      register: result
+      until: result.status == 200
+
+    - name: Print service URLs
+      debug:
+        msg:
+          - "Frontend:    http://{{ ansible_host }}:8081"
+          - "Backend:     http://{{ ansible_host }}:3000"
+          - "Prometheus:  http://{{ ansible_host }}:9090"
+          - "Grafana:     http://{{ ansible_host }}:3001"

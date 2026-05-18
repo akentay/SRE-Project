@@ -1,0 +1,10 @@
+﻿.terraform/
+terraform/.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+.env
+node_modules/
+dist/
+build/
+*.exe

@@ -1,0 +1,7 @@
+# terraform.tfvars — Variable values for MedBook deployment
+# Kentay Aida | SE-2428 | SRE Course 2026
+
+aws_region    = "us-east-1"
+instance_type = "t3.medium"
+ami_id        = "ami-0c7217cdde317cfec"
+project_name  = "MedBook-SRE"

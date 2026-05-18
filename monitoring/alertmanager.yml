@@ -1,0 +1,54 @@
+global:
+  resolve_timeout: 5m
+  slack_api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+
+route:
+  group_by: ["alertname", "severity"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: "default-receiver"
+  routes:
+    - match:
+        severity: critical
+      receiver: "critical-receiver"
+      group_wait: 10s
+    - match:
+        severity: warning
+      receiver: "warning-receiver"
+
+receivers:
+  - name: "default-receiver"
+    slack_configs:
+      - channel: '#medbook-alerts'
+        title: '{{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+
+  - name: "warning-receiver"
+    slack_configs:
+      - channel: '#medbook-alerts'
+        title: ':warning: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+
+  - name: "critical-receiver"
+    slack_configs:
+      - channel: '#medbook-critical'
+        title: ':red_circle: CRITICAL: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+    email_configs:
+      - to: 'oncall@medbook.com'
+        from: 'prometheus@medbook.com'
+        smarthost: 'smtp.gmail.com:587'
+        auth_username: 'prometheus@medbook.com'
+        auth_password: 'YOUR_APP_PASSWORD'
+        send_resolved: true
+
+inhibit_rules:
+  - source_match:
+      severity: "critical"
+    target_match:
+      severity: "warning"
+    equal: ["alertname"]

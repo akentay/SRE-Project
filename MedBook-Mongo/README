@@ -1,0 +1,76 @@
+# MedBook – Appointments Web App (Assignment 4)
+
+This project is a Node.js + Express + MongoDB web application with a production-style UI.
+
+Students:
+Aida Kentay 
+Tomiris Kassymova
+
+Group: SE-2428
+
+## Features
+- Full CRUD for Appointments via Web UI
+- Sessions-based authentication (express-session)
+- Session stored in MongoDB (connect-mongo)
+- Protected write operations (POST / PUT / DELETE)
+- Password hashing with bcrypt
+- Secure cookies (HttpOnly, Secure in production)
+- Validation + safe error handling
+
+## Tech Stack
+- Node.js
+- Express.js
+- MongoDB + Mongoose
+- express-session + connect-mongo
+- bcrypt
+- HTML/CSS/JS (Vanilla)
+
+## Domain Entity
+Appointments contain:
+- patientName
+- doctorName
+- date
+- time
+- department
+- reason
+- status (scheduled / completed / cancelled)
+- phone
+
+## Demo Requirements (Defense)
+- Open the deployed URL
+- Show CRUD via UI
+- Show login + sessions
+- Show that unauthorized users cannot create/update/delete
+
+## Test User
+Email: admin@medbook.com  
+Password: admin123
+
+## Environment Variables
+Create a `.env` file:
+
+MONGO_URI=your_mongodb_connection_string
+SESSION_SECRET=your_session_secret
+NODE_ENV=development
+PORT=3000
+
+
+## Run Locally
+```bash
+npm install
+node seed_user.js
+node seed_appointments.js
+npm start
+
+
+Open:
+http://localhost:3000
+
+
+Сохрани → потом:
+
+```bash
+git add README.md
+git commit -m "Add README"
+git push
+

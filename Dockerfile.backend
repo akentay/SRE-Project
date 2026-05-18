@@ -1,0 +1,19 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install --omit=dev
+
+COPY app.js ./
+COPY database/ ./database/
+COPY routes/ ./routes/
+COPY views/ ./views/
+COPY public/ ./public/
+COPY models/ ./models/
+COPY middleware/ ./middleware/
+
+EXPOSE 3000
+
+CMD ["node", "app.js"]
